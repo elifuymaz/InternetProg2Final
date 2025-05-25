@@ -1,0 +1,148 @@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card auth-card">
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">Kayıt Ol</h2>
+                        <div id="errorMessage" class="alert alert-danger d-none"></div>
+                        <div id="successMessage" class="alert alert-success d-none"></div>
+                        
+                        <!-- Regular Registration Form -->
+                        <form id="registerForm">
+                            <div class="mb-4">
+                                <label for="firstName" class="form-label">Ad</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="lastName" class="form-label">Soyad</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="username" class="form-label">Kullanıcı Adı</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Şifre</label>
+                                <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                            </div>
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label">Şifre Tekrar</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="6">
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-user-plus me-2"></i>Kayıt Ol
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="divider">
+                            <span>veya</span>
+                        </div>
+
+                        <button id="githubLogin" class="btn btn-dark w-100">
+                            <i class="fab fa-github me-2"></i>GitHub ile Kayıt Ol
+                        </button>
+
+                        <div class="text-center mt-4">
+                            <a href="/Home/Login" class="auth-link">Zaten hesabınız var mı? Giriş Yap</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Toastr ayarları
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-bottom-right",
+                "timeOut": "3000"
+            };
+
+            // GitHub login butonu tıklama olayı
+            $('#githubLogin').on('click', function() {
+                // GitHub OAuth URL'ini oluştur
+                const redirectUri = `${config.apiUrl}/api/auth/github-callback`;
+                const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${config.github.clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+                
+                // Yeni pencerede GitHub login sayfasını aç
+                window.open(githubAuthUrl, 'GitHub Login', 'width=600,height=600');
+            });
+
+            // GitHub login mesajlarını dinle
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'github-login-success') {
+                    if (event.data.token) {
+                        // Token'ı kaydet
+                        localStorage.setItem('token', event.data.token);
+                        toastr.success(event.data.message);
+                        setTimeout(function() {
+                            window.location.href = '/';
+                        }, 1000);
+                    } else {
+                        toastr.info(event.data.message);
+                        setTimeout(function() {
+                            window.location.href = '/Home/Login';
+                        }, 2000);
+                    }
+                } else if (event.data.type === 'github-login-error') {
+                    toastr.error(event.data.message);
+                }
+            });
+
+            $('#registerForm').on('submit', function (e) {
+                e.preventDefault();
+                
+                if ($('#password').val() !== $('#confirmPassword').val()) {
+                    toastr.error('Şifreler eşleşmiyor.');
+                    return;
+                }
+
+                const registerData = {
+                    firstName: $('#firstName').val(),
+                    lastName: $('#lastName').val(),
+                    username: $('#username').val(),
+                    email: $('#email').val(),
+                    password: $('#password').val()
+                };
+
+                $.ajax({
+                    url: `${config.apiUrl}/api/auth/register`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(registerData),
+                    success: function (response) {
+                        if (response.isSuccess) {
+                            // Token'ı kaydet
+                            localStorage.setItem('token', response.token);
+                            toastr.success('Kayıt başarılı!');
+                            setTimeout(function() {
+                                window.location.href = '/';
+                            }, 1000);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error('Kayıt işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin.');
+                    }
+                });
+            });
+        });
+    </script>
+} 

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>emlak.api</name>
+    </assembly>
+    <members>
+        <member name="M:emlak.api.Controllers.AuthController.Register(emlak.api.DTOs.RegisterModel)">
+            <summary>
+            Registers a new user
+            </summary>
+            <param name="model">User registration details</param>
+            <returns>Registration result with user details</returns>
+            <response code="200">Returns the newly created user</response>
+            <response code="400">If the registration fails</response>
+        </member>
+        <member name="M:emlak.api.Controllers.AuthController.Login(emlak.api.DTOs.LoginModel)">
+            <summary>
+            Authenticates a user
+            </summary>
+            <param name="model">Login credentials</param>
+            <returns>Authentication result with JWT token</returns>
+            <response code="200">Returns the JWT token</response>
+            <response code="400">If the login fails</response>
+        </member>
+        <member name="M:emlak.api.Controllers.AuthController.Logout">
+            <summary>
+            Logs out the current user
+            </summary>
+            <returns>Logout result</returns>
+            <response code="200">Returns success message</response>
+        </member>
+        <member name="M:emlak.api.Controllers.AuthController.GitHubLogin">
+            <summary>
+            Initiates GitHub authentication
+            </summary>
+            <returns>GitHub authorization URL</returns>
+        </member>
+        <member name="M:emlak.api.Controllers.AuthController.GitHubCallback(System.String)">
+            <summary>
+            Handles GitHub OAuth callback
+            </summary>
+            <param name="code">Authorization code from GitHub</param>
+            <returns>Authentication result with JWT token</returns>
+        </member>
+        <member name="T:emlak.api.Migrations.mig1">
+            <inheritdoc />
+        </member>
+        <member name="M:emlak.api.Migrations.mig1.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:emlak.api.Migrations.mig1.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:emlak.api.Migrations.mig1.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,205 @@
+@{
+    ViewData["Title"] = "İlan Detayı";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Ana Resim -->
+            <div class="card mb-4">
+                <div id="propertyImages" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <!-- Resimler AJAX ile yüklenecek -->
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#propertyImages" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Önceki</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#propertyImages" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Sonraki</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- İlan Detayları -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 id="propertyTitle" class="card-title mb-3"></h2>
+                    <p id="propertyDescription" class="card-text"></p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-ruler me-2"></i> <strong>Metrekare:</strong> <span id="propertySquareMeters"></span> m²</p>
+                            <p><i class="fas fa-bed me-2"></i> <strong>Oda Sayısı:</strong> <span id="propertyRoomCount"></span> + 1</p>
+                            <p><i class="fas fa-bath me-2"></i> <strong>Banyo Sayısı:</strong> <span id="propertyBathroomCount"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-tag me-2"></i> <strong>İlan Tipi:</strong> <span id="propertyType"></span></p>
+                            <p><i class="fas fa-map-marker-alt me-2"></i> <strong>Adres:</strong> <span id="propertyAddress"></span></p>
+                            <p><i class="fas fa-city me-2"></i> <strong>Konum:</strong> <span id="propertyLocation"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellikler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Özellikler</h5>
+                </div>
+                <div class="card-body">
+                    <div id="propertyFeatures" class="row">
+                        <!-- Özellikler AJAX ile yüklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- İletişim ve Fiyat -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="text-primary mb-3" id="propertyPrice"></h3>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="showContactInfo()">
+                            <i class="fas fa-phone me-2"></i>İletişim Bilgilerini Göster
+                        </button>
+                    </div>
+                    <div id="contactInfo" class="mt-3 d-none">
+                        <hr>
+                        <h5>İletişim Bilgileri</h5>
+                        <p><i class="fas fa-user me-2"></i> <strong>İlan Sahibi:</strong> <span id="propertyOwner"></span></p>
+                        <p><i class="fas fa-phone me-2"></i> <strong>Telefon:</strong> <span id="propertyPhone"></span></p>
+                        <p><i class="fas fa-envelope me-2"></i> <strong>E-posta:</strong> <span id="propertyEmail"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadPropertyDetails();
+        });
+
+        function loadPropertyDetails() {
+            const propertyId = @ViewBag.PropertyId;
+            $.ajax({
+                url: `${config.apiUrl}/api/Property/${propertyId}`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const property = response.data;
+                        console.log('Property data:', property);
+                        console.log('User data:', property.user);
+                        
+                        // Temel bilgileri doldur
+                        $('#propertyTitle').text(property.title);
+                        $('#propertyDescription').text(property.description);
+                        $('#propertySquareMeters').text(property.squareMeters);
+                        $('#propertyRoomCount').text(property.roomCount);
+                        $('#propertyBathroomCount').text(property.bathroomCount);
+                        $('#propertyType').text(getPropertyTypeText(property.propertyType));
+                        $('#propertyAddress').text(property.address);
+                        $('#propertyLocation').text(`${property.city ? property.city.name : ''} / ${property.district ? property.district.name : ''}`);
+                        $('#propertyPrice').text(`${property.price.toLocaleString('tr-TR')} ₺`);
+                        
+                        // Resimleri yükle
+                        const carouselInner = $('#propertyImages .carousel-inner');
+                        carouselInner.empty();
+                        
+                        if (property.images && property.images.length > 0) {
+                            property.images.forEach((image, index) => {
+                                const imageUrl = image.imageUrl.startsWith('http') 
+                                    ? image.imageUrl 
+                                    : `${config.apiUrl}${image.imageUrl}`;
+                                    
+                                carouselInner.append(`
+                                    <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                                        <img src="${imageUrl}" class="d-block w-100" style="height: 500px; object-fit: cover;">
+                                    </div>
+                                `);
+                            });
+                        } else {
+                            carouselInner.append(`
+                                <div class="carousel-item active">
+                                    <img src="/images/no-image.jpg" class="d-block w-100" style="height: 500px; object-fit: cover;">
+                                </div>
+                            `);
+                        }
+                        
+                        // Özellikleri yükle
+                        const featuresContainer = $('#propertyFeatures');
+                        featuresContainer.empty();
+                        
+                        if (property.features && property.features.length > 0) {
+                            property.features.forEach(feature => {
+                                featuresContainer.append(`
+                                    <div class="col-md-6 mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        ${feature.name}: ${feature.value}
+                                    </div>
+                                `);
+                            });
+                        } else {
+                            featuresContainer.append(`
+                                <div class="col-12">
+                                    <p class="text-muted">Bu ilan için özellik belirtilmemiş.</p>
+                                </div>
+                            `);
+                        }
+                        
+                        // İletişim bilgilerini yükle
+                        if (property.user && property.user.phoneNumber) {
+                            $('#propertyPhone').text(property.user.phoneNumber);
+                        } else {
+                            $('#propertyPhone').parent().hide();
+                        }
+
+                        if (property.user && property.user.email) {
+                            $('#propertyEmail').text(property.user.email);
+                        } else {
+                            $('#propertyEmail').parent().hide();
+                        }
+
+                        if (property.user) {
+                            const fullName = `${property.user.firstName} ${property.user.lastName}`;
+                            $('#propertyOwner').text(`${fullName} (${property.user.username})`);
+                        } else {
+                            $('#propertyOwner').text('Belirtilmemiş');
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlan detayları yüklenirken hata oluştu:', xhr);
+                    toastr.error('İlan detayları yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        }
+
+        function showContactInfo() {
+            $('#contactInfo').removeClass('d-none');
+        }
+
+        function getPropertyTypeText(propertyType) {
+            switch(propertyType.toLowerCase()) {
+                case 'apartment':
+                    return 'Daire';
+                case 'house':
+                    return 'Ev';
+                case 'land':
+                    return 'Arsa';
+                case 'commercial':
+                    return 'Ticari';
+                default:
+                    return propertyType;
+            }
+        }
+    </script>
+} 

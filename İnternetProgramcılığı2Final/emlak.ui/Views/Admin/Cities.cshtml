@@ -1,0 +1,199 @@
+@{
+    ViewData["Title"] = "İl Yönetimi";
+    Layout = "~/Views/Shared/_adminlayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">İl Yönetimi</h1>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#cityModal">
+            <i class="fas fa-plus"></i> Yeni İl Ekle
+        </button>
+    </div>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">İller</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="citiesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>İl Adı</th>
+                            <th>Plaka Kodu</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- AJAX ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- City Modal -->
+<div class="modal fade" id="cityModal" tabindex="-1" role="dialog" aria-labelledby="cityModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cityModalLabel">Yeni İl Ekle</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="cityForm">
+                    <input type="hidden" id="cityId">
+                    <div class="form-group">
+                        <label for="cityName">İl Adı</label>
+                        <input type="text" class="form-control" id="cityName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cityCode">Plaka Kodu</label>
+                        <input type="text" class="form-control" id="cityCode" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="saveCity()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadCities();
+        });
+
+        function loadCities() {
+            $.ajax({
+                url: `${config.apiUrl}/api/City`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const cities = response.data;
+                        const tbody = $('#citiesTable tbody');
+                        tbody.empty();
+
+                        cities.forEach(city => {
+                            tbody.append(`
+                                <tr>
+                                    <td>${city.name}</td>
+                                    <td>${city.code}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="editCity(${city.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteCity(${city.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İller yüklenirken hata oluştu:', xhr);
+                    toastr.error('İller yüklenirken bir hata oluştu');
+                }
+            });
+        }
+
+        function saveCity() {
+            const cityId = $('#cityId').val();
+            const cityData = {
+                name: $('#cityName').val(),
+                code: $('#cityCode').val()
+            };
+
+            const url = cityId 
+                ? `${config.apiUrl}/api/City/${cityId}`
+                : `${config.apiUrl}/api/City`;
+            const method = cityId ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                type: method,
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                contentType: 'application/json',
+                data: JSON.stringify(cityData),
+                success: function(response) {
+                    if (response.status) {
+                        $('#cityModal').modal('hide');
+                        loadCities();
+                        toastr.success(response.message || 'İl başarıyla kaydedildi');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İl kaydedilirken hata oluştu:', xhr);
+                    toastr.error('İl kaydedilirken bir hata oluştu');
+                }
+            });
+        }
+
+        function editCity(id) {
+            $.ajax({
+                url: `${config.apiUrl}/api/City/${id}`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const city = response.data;
+                        $('#cityId').val(city.id);
+                        $('#cityName').val(city.name);
+                        $('#cityCode').val(city.code);
+                        $('#cityModal').modal('show');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İl bilgileri alınırken hata oluştu:', xhr);
+                    toastr.error('İl bilgileri alınırken bir hata oluştu');
+                }
+            });
+        }
+
+        function deleteCity(id) {
+            if (confirm('Bu ili silmek istediğinizden emin misiniz?')) {
+                $.ajax({
+                    url: `${config.apiUrl}/api/City/${id}`,
+                    type: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            loadCities();
+                            toastr.success('İl başarıyla silindi');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('İl silinirken hata oluştu:', xhr);
+                        toastr.error('İl silinirken bir hata oluştu');
+                    }
+                });
+            }
+        }
+
+        // Modal kapandığında formu temizle
+        $('#cityModal').on('hidden.bs.modal', function() {
+            $('#cityForm')[0].reset();
+            $('#cityId').val('');
+        });
+    </script>
+} 

@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "Properties";
+    Layout = "~/Views/Shared/_adminlayout.cshtml";
+}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">İlan Yönetimi</h1>
+    </div>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tüm İlanlar</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="propertiesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Fiyat</th>
+                            <th>Lokasyon</th>
+                            <th>Metrekare</th>
+                            <th>Oda Sayısı</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- AJAX ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Property Details Modal -->
+<div class="modal fade" id="propertyModal" tabindex="-1" role="dialog" aria-labelledby="propertyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="propertyModalLabel">İlan Detayları</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>İlan Bilgileri</h6>
+                        <p><strong>Başlık:</strong> <span id="modalTitle"></span></p>
+                        <p><strong>Fiyat:</strong> <span id="modalPrice"></span></p>
+                        <p><strong>Metrekare:</strong> <span id="modalSquareMeters"></span></p>
+                        <p><strong>Oda Sayısı:</strong> <span id="modalRoomCount"></span></p>
+                        <p><strong>Banyo Sayısı:</strong> <span id="modalBathroomCount"></span></p>
+                        <p><strong>İlan Tipi:</strong> <span id="modalPropertyType"></span></p>
+                        <p><strong>Durum:</strong> <span id="modalStatus"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Lokasyon Bilgileri</h6>
+                        <p><strong>Adres:</strong> <span id="modalAddress"></span></p>
+                        <p><strong>İl:</strong> <span id="modalCity"></span></p>
+                        <p><strong>İlçe:</strong> <span id="modalDistrict"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Açıklama</h6>
+                        <p id="modalDescription"></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Özellikler</h6>
+                        <div id="modalFeatures" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Resimler</h6>
+                        <div id="modalImages" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ds.js"></script>
+}
+

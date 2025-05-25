@@ -1,0 +1,118 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card auth-card">
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">Giriş Yap</h2>
+                        <div id="errorMessage" class="alert alert-danger d-none"></div>
+                        <form id="loginForm">
+                            <div class="mb-4">
+                                <label for="username" class="form-label">Kullanıcı Adı</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Şifre</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                                </button>
+                            </div>
+                        </form>
+                        <div class="divider">
+                            <span>veya</span>
+                        </div>
+                        <button id="githubLogin" class="btn btn-dark w-100">
+                            <i class="fab fa-github me-2"></i>GitHub ile Giriş Yap
+                        </button>
+                        <div class="text-center mt-4">
+                            <a href="/Home/Register" class="auth-link">Hesabınız yok mu? Kayıt Ol</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Toastr ayarları
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-bottom-right",
+                "timeOut": "3000"
+            };
+
+            // GitHub login butonu tıklama olayı
+            $('#githubLogin').on('click', function() {
+                // GitHub OAuth URL'ini oluştur
+                const redirectUri = `${config.apiUrl}/api/auth/github-callback`;
+                const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${config.github.clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+                
+                // Yeni pencerede GitHub login sayfasını aç
+                window.open(githubAuthUrl, 'GitHub Login', 'width=600,height=600');
+            });
+
+            // GitHub login mesajlarını dinle
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'github-login-success') {
+                    if (event.data.token) {
+                        // Token'ı kaydet
+                        localStorage.setItem('token', event.data.token);
+                        toastr.success('GitHub ile giriş başarılı!');
+                        setTimeout(function() {
+                            window.location.href = '/';
+                        }, 1000);
+                    } else {
+                        toastr.info(event.data.message);
+                        setTimeout(function() {
+                            window.location.href = '/Home/Register';
+                        }, 2000);
+                    }
+                } else if (event.data.type === 'github-login-error') {
+                    toastr.error(event.data.message);
+                }
+            });
+
+            $('#loginForm').on('submit', function (e) {
+                e.preventDefault();
+                
+                const loginData = {
+                    username: $('#username').val(),
+                    password: $('#password').val()
+                };
+
+                $.ajax({
+                    url: `${config.apiUrl}/api/auth/login`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(loginData),
+                    success: function (response) {
+                        if (response.isSuccess) {
+                            // Store the token
+                            localStorage.setItem('token', response.token);
+                            toastr.success('Giriş başarılı!');
+                            setTimeout(function() {
+                                window.location.href = '/';
+                            }, 1000);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        toastr.error('Giriş başarısız oldu. Lütfen bilgilerinizi kontrol edin.');
+                    }
+                });
+            });
+        });
+    </script>
+} 

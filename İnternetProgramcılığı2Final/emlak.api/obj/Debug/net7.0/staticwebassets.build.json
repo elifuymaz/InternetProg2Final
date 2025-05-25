@@ -1,0 +1,19 @@
+{
+  "Version": 1,
+  "Hash": "dpDmxTM/AhaFXQWhpYwMq0TPEedJzxp80gLCD01R6Mg=",
+  "Source": "emlak.api",
+  "BasePath": "_content/emlak.api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "emlak.api\\wwwroot",
+      "Source": "emlak.api",
+      "ContentRoot": "C:\\Users\\Asus\\Desktop\\internet\\Elif uymaz emlak portalı Vize+Final\\Vize+Final\\emlak.api\\wwwroot\\",
+      "BasePath": "_content/emlak.api",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": []
+}

@@ -1,0 +1,234 @@
+@{
+    ViewData["Title"] = "İlçe Yönetimi";
+    Layout = "~/Views/Shared/_adminlayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">İlçe Yönetimi</h1>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#districtModal">
+            <i class="fas fa-plus"></i> Yeni İlçe Ekle
+        </button>
+    </div>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">İlçeler</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="districtsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>İlçe Adı</th>
+                            <th>İl</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- AJAX ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- District Modal -->
+<div class="modal fade" id="districtModal" tabindex="-1" role="dialog" aria-labelledby="districtModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="districtModalLabel">Yeni İlçe Ekle</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="districtForm">
+                    <input type="hidden" id="districtId">
+                    <div class="form-group">
+                        <label for="cityId">İl</label>
+                        <select class="form-control" id="cityId" required>
+                            <option value="">İl Seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="districtName">İlçe Adı</label>
+                        <input type="text" class="form-control" id="districtName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="districtCode">İlçe Kodu</label>
+                        <input type="text" class="form-control" id="districtCode" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="saveDistrict()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadCities();
+            loadDistricts();
+        });
+
+        function loadCities() {
+            $.ajax({
+                url: `${config.apiUrl}/api/City`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const cities = response.data;
+                        const select = $('#cityId');
+                        select.empty();
+                        select.append('<option value="">İl Seçin</option>');
+
+                        cities.forEach(city => {
+                            select.append(`<option value="${city.id}">${city.name}</option>`);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İller yüklenirken hata oluştu:', xhr);
+                    toastr.error('İller yüklenirken bir hata oluştu');
+                }
+            });
+        }
+
+        function loadDistricts() {
+            $.ajax({
+                url: `${config.apiUrl}/api/District`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const districts = response.data;
+                        const tbody = $('#districtsTable tbody');
+                        tbody.empty();
+
+                        districts.forEach(district => {
+                            tbody.append(`
+                                <tr>
+                                    <td>${district.name}</td>
+                                    <td>${district.city ? district.city.name : 'Belirtilmemiş'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="editDistrict(${district.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteDistrict(${district.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlçeler yüklenirken hata oluştu:', xhr);
+                    toastr.error('İlçeler yüklenirken bir hata oluştu');
+                }
+            });
+        }
+
+        function saveDistrict() {
+            const districtId = $('#districtId').val();
+            const districtData = {
+                cityId: $('#cityId').val(),
+                name: $('#districtName').val(),
+                code: $('#districtCode').val()
+            };
+
+            const url = districtId 
+                ? `${config.apiUrl}/api/District/${districtId}`
+                : `${config.apiUrl}/api/District`;
+            const method = districtId ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                type: method,
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                contentType: 'application/json',
+                data: JSON.stringify(districtData),
+                success: function(response) {
+                    if (response.status) {
+                        $('#districtModal').modal('hide');
+                        loadDistricts();
+                        toastr.success(response.message || 'İlçe başarıyla kaydedildi');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlçe kaydedilirken hata oluştu:', xhr);
+                    toastr.error('İlçe kaydedilirken bir hata oluştu');
+                }
+            });
+        }
+
+        function editDistrict(id) {
+            $.ajax({
+                url: `${config.apiUrl}/api/District/${id}`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const district = response.data;
+                        $('#districtId').val(district.id);
+                        $('#cityId').val(district.cityId);
+                        $('#districtName').val(district.name);
+                        $('#districtCode').val(district.code);
+                        $('#districtModal').modal('show');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlçe bilgileri alınırken hata oluştu:', xhr);
+                    toastr.error('İlçe bilgileri alınırken bir hata oluştu');
+                }
+            });
+        }
+
+        function deleteDistrict(id) {
+            if (confirm('Bu ilçeyi silmek istediğinizden emin misiniz?')) {
+                $.ajax({
+                    url: `${config.apiUrl}/api/District/${id}`,
+                    type: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            loadDistricts();
+                            toastr.success('İlçe başarıyla silindi');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('İlçe silinirken hata oluştu:', xhr);
+                        toastr.error('İlçe silinirken bir hata oluştu');
+                    }
+                });
+            }
+        }
+
+        // Modal kapandığında formu temizle
+        $('#districtModal').on('hidden.bs.modal', function() {
+            $('#districtForm')[0].reset();
+            $('#districtId').val('');
+        });
+    </script>
+} 

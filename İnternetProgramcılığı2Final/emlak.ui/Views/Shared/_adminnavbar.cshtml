@@ -1,0 +1,98 @@
+﻿@{
+    Layout = null;
+}
+
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/Admin">
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="fas fa-home"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">Emlak Yönetimi</div>
+    </a>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Admin">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        İlan Yönetimi
+    </div>
+
+    <!-- Nav Item - İlanlar -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Admin/Properties">
+            <i class="fas fa-fw fa-list"></i>
+            <span>Tüm İlanlar</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - Onay Bekleyen İlanlar -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Admin/PendingProperties">
+            <i class="fas fa-fw fa-clock"></i>
+            <span>Onay Bekleyenler</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/Admin/RejecetProperties">
+            <i class="fas fa-fw fa-clock"></i>
+            <span>Red Edilen İlanlar </span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Lokasyon Yönetimi
+    </div>
+
+    <!-- Nav Item - İller -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Admin/Cities">
+            <i class="fas fa-fw fa-city"></i>
+            <span>İller</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - İlçeler -->
+    <li class="nav-item">
+        <a class="nav-link" href="/Admin/Districts">
+            <i class="fas fa-fw fa-map-marker-alt"></i>
+            <span>İlçeler</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Nav Item - Çıkış -->
+    <li class="nav-item">
+        <a class="nav-link" href="#" onclick="logout()">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Çıkış Yap</span>
+        </a>
+    </li>
+
+</ul>
+
+<script>
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/Home/Login';
+    }
+</script>

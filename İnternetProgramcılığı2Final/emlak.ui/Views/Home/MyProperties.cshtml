@@ -1,0 +1,184 @@
+@{
+    ViewData["Title"] = "İlanlarım";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-home me-2"></i>İlanlarım</h4>
+                <a href="@Url.Action("PropertyApplication")" class="btn btn-light">
+                    <i class="fas fa-plus me-2"></i>Yeni İlan Ekle
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="propertiesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Tip</th>
+                            <th>Fiyat</th>
+                            <th>Durum</th>
+                            <th>Onay</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- İlanlar AJAX ile yüklenecek -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadProperties();
+        });
+
+        function loadProperties() {
+            $.ajax({
+                url: `${config.apiUrl}/api/Property`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const propertiesTable = $('#propertiesTable tbody');
+                        propertiesTable.empty();
+                        
+                        if (response.data.length === 0) {
+                            propertiesTable.append(`
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                                        <p class="text-muted">Henüz ilanınız bulunmamaktadır.</p>
+                                    </td>
+                                </tr>
+                            `);
+                            return;
+                        }
+
+                        response.data.forEach(property => {
+                            // Onay durumunu kontrol et
+                            let approvalStatus = '';
+                            if (property.status === "Rejected") {
+                                approvalStatus = '<span class="badge bg-danger">Reddedildi</span>';
+                            } else if (property.isApproved) {
+                                approvalStatus = '<span class="badge bg-success">Onaylandı</span>';
+                            } else {
+                                approvalStatus = '<span class="badge bg-warning">Onay Bekliyor</span>';
+                            }
+                            
+                            const statusBadge = getStatusBadgeClass(property.status);
+                            
+                            propertiesTable.append(`
+                                <tr>
+                                    <td>${property.title}</td>
+                                    <td>${getPropertyTypeText(property.propertyType)}</td>
+                                    <td>${property.price.toLocaleString('tr-TR')} ₺</td>
+                                    <td><span class="badge ${statusBadge}">${getStatusText(property.status)}</span></td>
+                                    <td>${approvalStatus}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteProperty(${property.id})" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlanlar yüklenirken hata oluştu:', xhr);
+                    toastr.error('İlanlar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status.toLowerCase()) {
+                case 'active':
+                    return 'bg-success';
+                case 'sold':
+                    return 'bg-danger';
+                case 'rented':
+                    return 'bg-info';
+                case 'rejected':
+                    return 'bg-danger';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status.toLowerCase()) {
+                case 'active':
+                    return 'Aktif';
+                case 'sold':
+                    return 'Satıldı';
+                case 'rented':
+                    return 'Kiralandı';
+                case 'rejected':
+                    return 'Reddedildi';
+                default:
+                    return status;
+            }
+        }
+
+        function getPropertyTypeText(propertyType) {
+            switch(propertyType.toLowerCase()) {
+                case 'apartment':
+                    return 'Daire';
+                case 'house':
+                    return 'Ev';
+                case 'land':
+                    return 'Arsa';
+                case 'commercial':
+                    return 'Ticari';
+                default:
+                    return propertyType;
+            }
+        }
+
+        function deleteProperty(id) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu ilanı silmek istediğinize emin misiniz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `${config.apiUrl}/api/Property/${id}`,
+                        type: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                toastr.success('İlan başarıyla silindi');
+                                loadProperties();
+                            } else {
+                                toastr.error(response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('İlan silinirken hata oluştu:', xhr);
+                            toastr.error('İlan silinirken bir hata oluştu. Lütfen tekrar deneyin.');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+} 

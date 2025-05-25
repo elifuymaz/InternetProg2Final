@@ -1,0 +1,128 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center py-5">
+                    <h1 class="display-4">Emlak Dünyasına Hoş Geldiniz</h1>
+                    <p class="lead">Hayalinizdeki evi bulun veya mülkünüzü satın</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Property List Section -->
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Son Eklenen İlanlar</h2>
+        </div>
+    </div>
+
+    <div class="row" id="propertiesList">
+        <!-- Properties will be loaded here -->
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/config.js"></script>
+    <script>
+        $(document).ready(function() {
+            loadProperties();
+        });
+
+        function loadProperties() {
+            console.log('API URL:', config.apiUrl);
+            $.ajax({
+                url: `${config.apiUrl}/api/Property/approved`,
+                type: 'GET',
+                success: function(response) {
+                    console.log('API Response:', response);
+                    if (response.status) {
+                        const propertiesList = $('#propertiesList');
+                        propertiesList.empty();
+                        
+                        if (response.data.length === 0) {
+                            propertiesList.append(`
+                                <div class="col-12 text-center py-5">
+                                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted h4">Henüz ilan bulunmamaktadır.</p>
+                                </div>
+                            `);
+                            return;
+                        }
+
+                        response.data.forEach(property => {
+                            const mainImage = property.images && property.images.length > 0 
+                                ? property.images[0].imageUrl 
+                                : '/images/no-image.jpg';
+
+                            const imageUrl = mainImage.startsWith('http') 
+                                ? mainImage 
+                                : `${config.apiUrl}${mainImage}`;
+
+                            propertiesList.append(`
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <img src="${imageUrl}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${property.title}</h5>
+                                            <p class="card-text text-muted">
+                                                <i class="fas fa-map-marker-alt me-2"></i>${property.address}
+                                            </p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge bg-primary">${getPropertyTypeText(property.propertyType)}</span>
+                                                <h5 class="text-primary mb-0">${property.price.toLocaleString('tr-TR')} ₺</h5>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-white">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-ruler me-1"></i>${property.squareMeters} m²
+                                                    </small>
+                                                </div>
+                                                <div class="col-6">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-bed me-1"></i>${property.roomCount} + 1
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <a href="/Home/PropertyDetails/${property.id}" class="btn btn-primary btn-sm w-100">
+                                                    <i class="fas fa-info-circle me-1"></i>İlan Detayı
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlanlar yüklenirken hata oluştu:', xhr);
+                    toastr.error('İlanlar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        }
+
+        function getPropertyTypeText(propertyType) {
+            switch(propertyType.toLowerCase()) {
+                case 'apartment':
+                    return 'Daire';
+                case 'house':
+                    return 'Ev';
+                case 'land':
+                    return 'Arsa';
+                case 'commercial':
+                    return 'Ticari';
+                default:
+                    return propertyType;
+            }
+        }
+    </script>
+}

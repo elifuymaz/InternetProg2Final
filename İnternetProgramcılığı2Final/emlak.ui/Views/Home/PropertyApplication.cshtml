@@ -1,0 +1,427 @@
+@{
+    ViewData["Title"] = "İlan Oluştur";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-home me-2"></i>@(ViewContext.RouteData.Values["id"] == null ? "Yeni İlan" : "İlan Düzenle")
+            </h4>
+        </div>
+        <div class="card-body">
+            <form id="propertyForm" enctype="multipart/form-data">
+                <input type="hidden" id="propertyId" />
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">İlan Başlığı</label>
+                            <input type="text" class="form-control" id="title" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">İlan Açıklaması</label>
+                            <textarea class="form-control" id="description" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Fiyat (TL)</label>
+                            <input type="number" class="form-control" id="price" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adres</label>
+                            <input type="text" class="form-control" id="address" required>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="squareMeters" class="form-label">Metrekare</label>
+                            <input type="number" class="form-control" id="squareMeters" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="roomCount" class="form-label">Oda Sayısı</label>
+                            <input type="number" class="form-control" id="roomCount" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bathroomCount" class="form-label">Banyo Sayısı</label>
+                            <input type="number" class="form-control" id="bathroomCount" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="propertyType" class="form-label">Emlak Tipi</label>
+                            <select class="form-select" id="propertyType" required>
+                                <option value="">Seçiniz</option>
+                                <option value="Daire">Daire</option>
+                                <option value="Ev">Ev</option>
+                                <option value="Arsa">Arsa</option>
+                                <option value="Villa">Villa</option>
+                                <option value="Yazlık">Yazlık</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">İlan Tipi</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isForSale">
+                                <label class="form-check-label" for="isForSale">Satılık</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isForRent">
+                                <label class="form-check-label" for="isForRent">Kiralık</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cityId" class="form-label">Şehir</label>
+                            <select class="form-select" id="cityId" required>
+                                <option value="">Şehir Seçiniz</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="districtId" class="form-label">İlçe</label>
+                            <select class="form-select" id="districtId" required disabled>
+                                <option value="">Önce şehir seçiniz</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Özellikler</label>
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="featureName" placeholder="Özellik adı">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="featureValue" placeholder="Özellik değeri">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFeature()">
+                            <i class="fas fa-plus me-1"></i>Özellik Ekle
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="featuresTable">
+                            <thead>
+                                <tr>
+                                    <th>Özellik Adı</th>
+                                    <th>Değer</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Features will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="images" class="form-label">İlan Görselleri (En fazla 5 adet)</label>
+                    <input type="file" class="form-control" id="images" multiple accept="image/*" onchange="previewImages(this)">
+                    <div class="row mt-3" id="imagePreview">
+                        <!-- Image previews will be shown here -->
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>@(ViewContext.RouteData.Values["id"] == null ? "İlan Oluştur" : "İlanı Güncelle")
+                    </button>
+                    <a href="@Url.Action("MyProperties")" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadCities();
+            
+            // Load property data if editing
+            const urlParams = new URLSearchParams(window.location.search);
+            const propertyId = urlParams.get('id');
+            if (propertyId) {
+                loadProperty(propertyId);
+            }
+            
+            $('#cityId').change(function() {
+                const cityId = $(this).val();
+                if (cityId) {
+                    loadDistricts(cityId);
+                } else {
+                    $('#districtId').empty().append('<option value="">Önce şehir seçiniz</option>').prop('disabled', true);
+                }
+            });
+            
+            $('#propertyForm').submit(function(e) {
+                e.preventDefault();
+                submitProperty();
+            });
+        });
+        
+        function previewImages(input) {
+            const preview = $('#imagePreview');
+            preview.empty();
+            
+            if (input.files) {
+                for (let i = 0; i < input.files.length; i++) {
+                    if (i >= 5) break; // Max 5 images
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.append(`
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <img src="${e.target.result}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body p-2">
+                                        <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeImage(${i})">
+                                            <i class="fas fa-trash me-1"></i>Sil
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                    reader.readAsDataURL(input.files[i]);
+                }
+            }
+        }
+        
+        function removeImage(index) {
+            const input = $('#images')[0];
+            const dt = new DataTransfer();
+            const { files } = input;
+            
+            for (let i = 0; i < files.length; i++) {
+                if (i !== index) {
+                    dt.items.add(files[i]);
+                }
+            }
+            
+            input.files = dt.files;
+            previewImages(input);
+        }
+        
+        function loadCities() {
+            $.ajax({
+                url: `${config.apiUrl}/api/City`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.status) {
+                        const select = $('#cityId');
+                        select.empty();
+                        select.append('<option value="">Şehir Seçiniz</option>');
+                        
+                        response.data.forEach(function(city) {
+                            select.append(`<option value="${city.id}">${city.name}</option>`);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Şehirler yüklenirken hata oluştu:', xhr);
+                    toastr.error('Şehirler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        }
+        
+        function loadDistricts(cityId) {
+            $('#districtId').prop('disabled', true).empty().append('<option value="">Yükleniyor...</option>');
+            
+            $.ajax({
+                url: `${config.apiUrl}/api/District/by-city/${cityId}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.status) {
+                        const select = $('#districtId');
+                        select.empty();
+                        select.append('<option value="">İlçe Seçiniz</option>');
+                        
+                        response.data.forEach(function(district) {
+                            select.append(`<option value="${district.id}">${district.name}</option>`);
+                        });
+                        
+                        select.prop('disabled', false);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlçeler yüklenirken hata oluştu:', xhr);
+                    toastr.error('İlçeler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                    $('#districtId').empty().append('<option value="">İlçe yüklenemedi</option>');
+                }
+            });
+        }
+        
+        function loadProperty(id) {
+            $.ajax({
+                url: `${config.apiUrl}/api/Property/${id}`,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        const property = response.data;
+                        $('#propertyId').val(property.id);
+                        $('#title').val(property.title);
+                        $('#description').val(property.description);
+                        $('#price').val(property.price);
+                        $('#address').val(property.address);
+                        $('#squareMeters').val(property.squareMeters);
+                        $('#roomCount').val(property.roomCount);
+                        $('#bathroomCount').val(property.bathroomCount);
+                        $('#propertyType').val(property.propertyType);
+                        $('#isForSale').prop('checked', property.isForSale);
+                        $('#isForRent').prop('checked', property.isForRent);
+                        
+                        // Önce şehri seç ve ilçeleri yükle
+                        $('#cityId').val(property.cityId).trigger('change');
+                        
+                        // İlçe seçimini geciktir
+                        setTimeout(() => {
+                            $('#districtId').val(property.districtId);
+                        }, 500);
+                        
+                        // Load features
+                        if (property.features) {
+                            $('#featuresTable tbody').empty();
+                            property.features.forEach(feature => {
+                                const featureId = Date.now();
+                                $('#featuresTable tbody').append(`
+                                    <tr id="feature-${featureId}">
+                                        <td>${feature.name}</td>
+                                        <td>${feature.value}</td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeFeature(${featureId})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `);
+                            });
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('İlan yüklenirken hata oluştu:', xhr);
+                    toastr.error('İlan yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        }
+        
+        function submitProperty() {
+            const formData = new FormData();
+            const propertyId = $('#propertyId').val();
+            
+            formData.append('title', $('#title').val());
+            formData.append('description', $('#description').val());
+            formData.append('price', $('#price').val());
+            formData.append('address', $('#address').val());
+            formData.append('squareMeters', $('#squareMeters').val());
+            formData.append('roomCount', $('#roomCount').val());
+            formData.append('bathroomCount', $('#bathroomCount').val());
+            formData.append('propertyType', $('#propertyType').val());
+            formData.append('isForSale', $('#isForSale').is(':checked'));
+            formData.append('isForRent', $('#isForRent').is(':checked'));
+            formData.append('cityId', $('#cityId').val());
+            formData.append('districtId', $('#districtId').val());
+            
+            // Add features
+            const features = [];
+            $('#featuresTable tbody tr').each(function() {
+                features.push({
+                    name: $(this).find('td:first').text(),
+                    value: $(this).find('td:nth-child(2)').text()
+                });
+            });
+
+            // Her bir feature'ı ayrı ayrı ekle
+            features.forEach((feature, index) => {
+                formData.append(`features[${index}].name`, feature.name);
+                formData.append(`features[${index}].value`, feature.value);
+            });
+            
+            const images = $('#images')[0].files;
+            for (let i = 0; i < images.length; i++) {
+                formData.append('images', images[i]);
+            }
+            
+            const url = propertyId 
+                ? `${config.apiUrl}/api/Property/${propertyId}`
+                : `${config.apiUrl}/api/Property`;
+            
+            $.ajax({
+                url: url,
+                type: propertyId ? 'PUT' : 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    if (response.status) {
+                        toastr.success('İlan başarıyla kaydedildi');
+                        setTimeout(() => {
+                            window.location.href = '@Url.Action("MyProperties")';
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error submitting property:', xhr);
+                    toastr.error('İlan kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        }
+        
+        function addFeature() {
+            const name = $('#featureName').val().trim();
+            const value = $('#featureValue').val().trim();
+            
+            if (!name || !value) {
+                toastr.warning('Lütfen özellik adı ve değerini giriniz');
+                return;
+            }
+            
+            const featureId = Date.now(); // Unique ID for the feature
+            $('#featuresTable tbody').append(`
+                <tr id="feature-${featureId}">
+                    <td>${name}</td>
+                    <td>${value}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeFeature(${featureId})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+            
+            // Clear inputs
+            $('#featureName').val('');
+            $('#featureValue').val('');
+        }
+        
+        function removeFeature(id) {
+            $(`#feature-${id}`).remove();
+        }
+    </script>
+} 
